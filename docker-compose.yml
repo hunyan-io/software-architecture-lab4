@@ -1,0 +1,62 @@
+version: '2'
+
+name: software-architecture-lab4
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.4
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+  
+  kafka:
+    image: confluentinc/cp-kafka:7.4.4
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  central-bank-database-service:
+    build: ./central-bank-database-service
+    container_name: central-bank-database-service
+    depends_on:
+      - kafka
+
+  client-app:
+    build: ./client-app
+    container_name: client-app
+    depends_on:
+      - kafka
+
+  commercial-service:
+    build: ./commercial-service
+    container_name: commercial-service
+    depends_on:
+      - kafka
+
+  credit-service:
+    build: ./credit-service
+    container_name: credit-service
+    depends_on:
+      - kafka
+
+  ocr-service:
+    build: ./ocr-service
+    container_name: ocr-service
+    depends_on:
+      - kafka
+
+  risk-management-service:
+    build: ./risk-management-service
+    container_name: risk-management-service
+    depends_on:
+      - kafka
